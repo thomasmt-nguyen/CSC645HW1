@@ -1,4 +1,5 @@
 #include <iostream>
+#include <stdio.h>
 #include <string>
 #include <string.h>
 #include <sys/types.h>
@@ -16,20 +17,20 @@ void displayMenu();
 int main()
 {
 
-  int client, option, portNum;
+  int client, portNum;
   bool isExit = false;
   int bufsize = 1024;
   char buffer[bufsize];
   char * ipPtr = (char*)malloc(100);
-  string ipaddress, msg, name, password;
+  string ipaddress, msg, option;
 
   while(true){
 
     displayMenu();
     cout << "Your option<enter a number>: ";
-    cin >> option;
+    getline(cin, option);
     
-    switch(option){
+    switch( atoi(option.c_str()) ){
 
       case 0:{
     
@@ -39,7 +40,7 @@ int main()
         cin >> portNum;
         strcpy(ipPtr, ipaddress.c_str());
         
-	/*connect to server*/
+		/*connect to server*/
         struct sockaddr_in server_addr; 
         client = socket(AF_INET, SOCK_STREAM, 0);
         	
@@ -49,94 +50,109 @@ int main()
         server_addr.sin_family = AF_INET;
         server_addr.sin_port = htons(portNum);
 
-	/*connect socket*/
+	    /*connect socket*/
         if((connect(client,(struct sockaddr *)&server_addr, sizeof(server_addr)) == 0))
           cout << "Connecting..." << endl;
         
-	/* Wait for connection confirmation */	
-	recv(client, buffer, bufsize, 0); 
-	cout << buffer << endl;
-    cin.ignore();
+	    /* Wait for connection confirmation */	
+	    recv(client, buffer, bufsize, 0); 
+	    cout << buffer << endl;
+        cin.ignore();
     
-	/* Send Username */
-	cout << "Username: ";
-    getline(cin,name);
-	name += '\n';	
- 	send(client, name.data(), name.length() + 1, 0);
+	    /* Send Username */
+	    cout << "Username: ";
+        getline(cin,msg);
+	    msg += '\n';	
+ 	    send(client, msg.data(), msg.length() + 1, 0);
    
-	recv(client, buffer, bufsize, 0);
-    //cout << msg << endl;
+	    recv(client, buffer, bufsize, 0);
+        //cout << msg << endl;
     
-	/* Send Password */
-	cout << "Password: ";
-    getline(cin,password);
-    password += '\n';
-	send(client, password.data(), password.length() + 1, 0);
+	    /* Send Password */
+	    cout << "Password: ";
+        getline(cin,msg);
+        msg += '\n';
+	    send(client, msg.data(), msg.length() + 1, 0);
     
-    /* Wait for authentication */
-	recv(client, buffer, bufsize, 0);
-    msg = buffer;
+         /* Wait for authentication */
+	     recv(client, buffer, bufsize, 0);
+         msg = buffer;
 
-	/*get authentication*/
-	cout << msg << endl;
-    
-
-    
+	     /*get authentication*/
+	     if(msg.compare("Valid") == 0)
+		   cout << "login success" << endl;
+		 else
+		   cout << "login failure" << endl;
+       
+         break;
+       }   
 /*****************************************************************************/
 /*********** GET USER LIST WILL GO UNDER CASE 1:******************************/
 /*****************************************************************************/
+       case 1:{
 
-	/* send option '1'*/
-	msg = "1";
-	send(client, msg.data(), msg.length() + 1, 0);
+	     /* send option '1'*/
+	     send(client, option.data(), option.length() + 1, 0);
 	
-	/* recieve list */
-	recv(client, buffer, bufsize, 0);
-	msg = buffer;
+	     /* recieve list */
+	     recv(client, buffer, bufsize, 0);
+	     msg = buffer;
    
-    
-	/*display list*/
-	cout << msg << endl;
-    
+	     /*display list*/
+	     cout << msg << endl;
+        
+
+		 break;
+       }  
 /*****************************************************************************/
 /*********** SEND MESSAGES WILL GO UNDER CASE 2:******************************/
 /*****************************************************************************/
+       case 2:{
+        
+		 /* Send Option 2 */ 
+	     send(client, option.data(), option.length()+1, 0);
+         recv(client, buffer, bufsize, 0);
 
-    /* Send Option 1 */
-	msg = "2";
-	send(client, msg.data(), msg.length()+1, 0);
+	     /* Send User Name */
+	     cout << "Please enter the user name: ";
+	     getline(cin, msg);
+	     send(client, msg.data(), msg.length()+1, 0);
+	     recv(client, buffer, bufsize, 0);
     
-	/* Recieve confirm option recieved */
-	msg = "Alice";
-	send(client, msg.data(), msg.length()+1, 0);
-	recv(client, buffer, bufsize, 0);
-    
-	msg = "This is a message";
-	send(client, msg.data(), msg.length()+1, 0);
-	recv(client, buffer, bufsize, 0);
+	     /* Send message */
+         cout << "Please enter the message: ";
+	     getline(cin, msg);
+	     send(client, msg.data(), msg.length()+1, 0);
+	     recv(client, buffer, bufsize, 0);
+        
+		 break;
 
+	   }  
 /*****************************************************************************/
 /*********** READ MESSAGES WILL GO UNDER CASE 3:******************************/
 /*****************************************************************************/
-    // Once it reaches here, the client can send a message first.
-    cout << "\n=> Connection terminated.\nGoodbye...\n";
-    close(client);
+       case 3:{
 	
-	break; 
-      }
-      case 1:{
-      //get list of users 
-            
-        close(client);
-        exit(0);
-	break;
-      }
-      case 5:{
-	close(client);
-        break;
-      }
+	     /* Send option 3 */
+	     send(client, option.data(), option.length()+1, 0);
+        
+         /* Recieve messages */
+		 recv(client, buffer, bufsize, 0); 	
+         cout << buffer << endl;
 
-    }//end switch
+		 break;
+
+       }
+/*****************************************************************************/
+/*********** READ MESSAGES WILL GO UNDER CASE 3:******************************/
+/*****************************************************************************/
+      case 4:{
+	    
+		close(client);
+		break;
+      
+	  }
+	}//end switch
   
   }//end while loop
 

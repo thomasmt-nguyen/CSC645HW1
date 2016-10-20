@@ -12,14 +12,14 @@ using namespace std;
 
 bool validate(string, string);
 string getUserList();
-string getMessages(string);
-void sendMessage(string, string);
+string readMessages(string);
+void sendMessages(string, string);
 
 int main()
 {
 
     int client, server;
-    int portNum = 8002;
+    int portNum = 8004;
     bool validUser = false;
     int bufsize = 1024;
     char buffer[bufsize];
@@ -57,96 +57,109 @@ int main()
 	/* Send Confirmation */
     msg = "Welcome!\nPlease Log In.";
     send(server, msg.data(), msg.length() + 1, 0);
+
+/*****************************************************************************/
+/*********** GET USER LIST WILL GO UNDER CASE 1:******************************/
+/*****************************************************************************/
 	
-	/* Wait for username */ 
-	while(true){
+    while(true){
 	  
-	  int n = recv(server, buffer, bufsize, 0);
-	  userName += buffer;
+	  /* Wait for username */ 
+	  while(true){
+	    
+		int n = recv(server, buffer, bufsize, 0);
+	    userName += buffer;
 	  
-	  if(userName.find("\n") != std::string::npos)
-	    break;
-
-    }
+	    if(userName.find("\n") != std::string::npos)
+	      break;
+      }
     
-	/* Wait for password */
-	send(server, msg.data(), msg.length() + 1, 0);
-   
-	while(true){
+	  /* Wait for password */
+	  send(server, msg.data(), msg.length() + 1, 0);
 	  
-	  int n = recv(server, buffer, bufsize, 0);
-	  userPassword += buffer;
+	  while(true){
+	    int n = recv(server, buffer, bufsize, 0);
+	    userPassword += buffer;
 	  
-	  if(userPassword.find("\n") != std::string::npos)
-	    break;
+	    if(userPassword.find("\n") != std::string::npos)
+	      break;
+      }
 
-    }
+	  /* validate && remove '\n' */
+      userName = userName.substr(0, userName.length()-1 );
+	  userPassword = userPassword.substr(0, userPassword.length()-1 );
 
-	/* validate && remove '\n' */
-    userName = userName.substr(0, userName.length()-1 );
-	userPassword = userPassword.substr(0, userPassword.length()-1 );
-
-    if(validate(userName, userPassword)){
-	  msg = "Valid";
-	  validUser = true;
-	}
-	else{
-	  msg = "Invalid";
-	  validUser = false;
-	}
+      if(validate(userName, userPassword)){
+	    msg = "Valid";
+	    validUser = true;
+	  }
+	  else{
+	    msg = "Invalid";
+	    validUser = false;
+ 	  }
     
-	/* Send if valid user or not */
-    send(server, msg.data(), msg.length() + 1, 0);
+	  /* Send if valid user or not */
+      send(server, msg.data(), msg.length() + 1, 0);
     
 /*****************************************************************************/
 /*********** GET USER LIST WILL GO UNDER CASE 1:******************************/
 /*****************************************************************************/
 
-    /* Recieve option "1" */
-    recv(server, buffer, bufsize, 0);
+      /* Recieve option "1" */
+      recv(server, buffer, bufsize, 0);
     
-	/* Send list */
-    msg = getUserList();
-	send(server, msg.data(), msg.length() + 1, 0);
+	  /* Send list */
+      msg = getUserList();
+	  send(server, msg.data(), msg.length() + 1, 0);
     
 /*****************************************************************************/
 /*********** SEND MESSAGES WILL GO UNDER CASE 2:******************************/
 /*****************************************************************************/
 	
-    string sendUser, sendMessage; 
+      string sendUser, sendMessage; 
 
-	/* Recieve option "2" */
-	recv(server, buffer, bufsize, 0);
-	msg = buffer;
-	send(server, msg.data() , msg.length()+1, 0);
+	  /* Recieve option "2" */
+	  recv(server, buffer, bufsize, 0);
+	  msg = buffer;
+	  send(server, msg.data() , msg.length()+1, 0);
 
-	/* Recieve user to send message to */
-	recv(server, buffer, bufsize, 0);
-	sendUser = buffer;
-    send(server, msg.data(), msg.length()+1, 0);
+	  /* Recieve user to send message to */
+	  recv(server, buffer, bufsize, 0);
+	  sendUser = buffer;
+      send(server, msg.data(), msg.length()+1, 0);
 
-	/* Recieve message to send */
-    recv(server, buffer, bufsize, 0);
-	sendMessage = buffer;
-	send(server, msg.data(), msg.length()+1, 0);
+	  /* Recieve message to send */
+      recv(server, buffer, bufsize, 0);
+      sendMessage = buffer;
+      send(server, msg.data(), msg.length()+1, 0);
     
-	cout << msg << endl;
-	cout << sendUser << endl;
-	cout << sendMessage << endl;
-
-
+	  /* Write message */
+	  sendMessages(sendUser, sendMessage);
+/*****************************************************************************/
+/*********** READ MESSAGES WILL GO UNDER CASE 3:******************************/
+/*****************************************************************************/
+    
+	  string readMessage;
+    
+	  /* Receive Option 3 */
+	  recv(server, buffer, bufsize, 0);
+      readMessage = readMessages(userName);
+	
+	  /* Send users messages */
+	  send(server, readMessage.data(), readMessage.length()+1, 0); 
 /*****************************************************************************/
 /*********** READ MESSAGES WILL GO UNDER CASE 3:******************************/
 /*****************************************************************************/
 
+      cout << "\n\n=> Connection terminated with IP " << inet_ntoa(server_addr.sin_addr);
+      close(server);
+      cout << "\nGoodbye..." << endl;
 
+      close(client);
+      return 0;
+	}
 
-    cout << "\n\n=> Connection terminated with IP " << inet_ntoa(server_addr.sin_addr);
-    close(server);
-    cout << "\nGoodbye..." << endl;
-
-    close(client);
-    return 0;
+  return 0;
 }
 
 
@@ -199,7 +212,7 @@ string getUserList(){
 }
 
 
-void sendMessage(string name, string message){
+void sendMessages(string name, string message){
   
   ofstream file;
   file.open(name, ios::app);
