@@ -20,6 +20,7 @@ int main()
   bool isExit = false;
   int msgsize = 1024;
   char msg[msgsize];
+  char buffer[msgsize];
   char * ipPtr = (char*)malloc(100);
   string ipaddress, name, password;
 
@@ -55,40 +56,34 @@ int main()
         if((connect(client,(struct sockaddr *)&server_addr, sizeof(server_addr)) == 0))
           cout << "Connecting..." << endl;
         
-	/*recieve confirmation*/	
-    /*Will receive "Welcome!\n Please Log in*/
+	/* Wait for connection confirmation */	
 	recv(client, msg, msgsize, 0); 
 	cout << msg << endl;
     cin.ignore();
-
+    
+	/* Send Username */
 	cout << "Username: ";
     getline(cin,name);
 	name += '\n';	
  	send(client, name.data(), name.length() + 1, 0);
-    
-	
+   
 	recv(client, msg, msgsize, 0);
     //cout << msg << endl;
     
+	/* Send Password */
 	cout << "Password: ";
     getline(cin,password);
     password += '\n';
 	send(client, password.data(), password.length() + 1, 0);
-	/*
-	cout << "Password: ";
-	cin >> password;
-	strcpy(buffer, password.c_str());
-
-	send(client, buffer, bufsize, 0);
-
-	authentication = name + ":" + password;
-	if(strcmp(buffer, "Valid") != 0){
-	  cout << "Invalid Login" << endl;
-	  break;
-	}
+    
+    /* Wait for authentication */
+	recv(client, msg, msgsize, 0);
+    
+	/*get authentication*/
+	if(msg.compare
 
 
-*/
+
 
 
         // Once it reaches here, the client can send a message first.

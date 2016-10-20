@@ -81,10 +81,13 @@ int main()
 	cout << "username: " << userName << "\npassword: " << userPassword;
 	
 	//validate
-    /*
-	strcpy(buffer, "Valid");
-    send(server, buffer, bufsize, 0);
-    */
+    if(validate(userName, userPassword))
+	  msg = "Valid";
+	else
+	  msg = "Invalid";
+
+    send(server, msg.data(), msg.length() + 1, 0);
+    
     //Get credentials
     //
   
@@ -101,19 +104,21 @@ bool validate(string name, string password){
   
   string userName, userPassword;
   
-  ifstream file ("userList");
+  ifstream file;
+  file.open("userList");
   
   while(file >> userName){
     
-	file >> userName;
     file >> userPassword;
   
-  if(userName.compare(name) == 0){
+    if(userName.compare(name) == 0){
     
-	if(userPassword.compare(password) == 0)
-      return true;
-	else
-	  return false;
+	  if(userPassword.compare(password) == 0)
+        return true;
+	  else
+	    return false;
+  
+    }
   
   }
 
