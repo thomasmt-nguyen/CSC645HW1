@@ -61,7 +61,7 @@ int main()
     
 	//cout << "Welcome!\nPlease Log In." << endl;
 	string name, password, authentication;
-      
+    cin.ignore();  
 	cout << "Username: ";
     getline(cin,name);
 
