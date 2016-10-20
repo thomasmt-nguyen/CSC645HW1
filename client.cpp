@@ -18,11 +18,10 @@ int main()
 
   int client, option, portNum;
   bool isExit = false;
-  int msgsize = 1024;
-  char msg[msgsize];
-  char buffer[msgsize];
+  int bufsize = 1024;
+  char buffer[bufsize];
   char * ipPtr = (char*)malloc(100);
-  string ipaddress, name, password;
+  string ipaddress, msg, name, password;
 
 
   
@@ -57,8 +56,8 @@ int main()
           cout << "Connecting..." << endl;
         
 	/* Wait for connection confirmation */	
-	recv(client, msg, msgsize, 0); 
-	cout << msg << endl;
+	recv(client, buffer, bufsize, 0); 
+	cout << buffer << endl;
     cin.ignore();
     
 	/* Send Username */
@@ -67,7 +66,7 @@ int main()
 	name += '\n';	
  	send(client, name.data(), name.length() + 1, 0);
    
-	recv(client, msg, msgsize, 0);
+	recv(client, buffer, bufsize, 0);
     //cout << msg << endl;
     
 	/* Send Password */
@@ -77,18 +76,20 @@ int main()
 	send(client, password.data(), password.length() + 1, 0);
     
     /* Wait for authentication */
-	recv(client, msg, msgsize, 0);
-    
+	recv(client, buffer, bufsize, 0);
+    msg = buffer;
+    cout << msg;
+
 	/*get authentication*/
-	if(msg.compare
+	if(msg.compare("Valid") == 0)
+	  cout << "Success!";
+	else
+	  cout << "Fail!";
 
-
-
-
-
-        // Once it reaches here, the client can send a message first.
-        cout << "\n=> Connection terminated.\nGoodbye...\n";
-        close(client);
+    // Once it reaches here, the client can send a message first.
+    cout << "\n=> Connection terminated.\nGoodbye...\n";
+    close(client);
+	
 	break; 
       }
       case 1:{

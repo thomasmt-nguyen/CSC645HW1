@@ -10,15 +10,17 @@
 
 using namespace std;
 
+bool validate(string, string);
+
 int main()
 {
 
     int client, server;
-    int portNum = 8001;
+    int portNum = 8002;
     bool isExit = false;
-    int msgsize = 1024;
-    char msg[msgsize];
-	string userName, userPassword;
+    int bufsize = 1024;
+    char buffer[bufsize];
+	string userName, userPassword, msg;
     struct sockaddr_in server_addr;
     socklen_t size;
 
@@ -76,11 +78,11 @@ int main()
 	    break;
 
     }
-	
-	/*TODO: Erased this*/
-	cout << "username: " << userName << "\npassword: " << userPassword;
-	
-	//validate
+
+	//validate && remove '\n'
+    userName = userName.substr(0, userName.length());
+	userPassword = userPassword.substr(0, userPassword.length());
+
     if(validate(userName, userPassword))
 	  msg = "Valid";
 	else
