@@ -19,7 +19,7 @@ int main()
 {
 
     int client, server;
-    int portNum = 8004;
+    int portNum = 8005;
     bool validUser = false;
     int bufsize = 1024;
     char buffer[bufsize];
@@ -58,107 +58,158 @@ int main()
     msg = "Welcome!\nPlease Log In.";
     send(server, msg.data(), msg.length() + 1, 0);
 
+	/* Wait for username */ 
+	while(true){
+	    
+      int n = recv(server, buffer, bufsize, 0);
+	  userName += buffer;
+	  
+	  if(userName.find("\n") != std::string::npos)
+	    break;
+    }
+    
+	/* Wait for password */
+	send(server, msg.data(), msg.length() + 1, 0);
+	  
+	while(true){
+	  int n = recv(server, buffer, bufsize, 0);
+	  userPassword += buffer;
+	  
+	  if(userPassword.find("\n") != std::string::npos)
+	    break;
+    }
+
+	/* validate && remove '\n' */
+    userName = userName.substr(0, userName.length()-1 );
+	userPassword = userPassword.substr(0, userPassword.length()-1 );
+
+    if(validate(userName, userPassword)){
+	  msg = "Valid";
+	  validUser = true;
+	}
+	else{
+	  msg = "Invalid";
+	  validUser = false;
+ 	}
+    
+	/* Send if valid user or not */
+    send(server, msg.data(), msg.length() + 1, 0);
 /*****************************************************************************/
 /*********** GET USER LIST WILL GO UNDER CASE 1:******************************/
 /*****************************************************************************/
 	
     while(true){
-	  
-	  /* Wait for username */ 
-	  while(true){
+      
+	  /* get option */
+      recv(server, buffer, bufsize, 0);	  
+	  switch( atoi(buffer) ){
+        
+		case 0:{
+	      
+		  /* Wait for username */ 
+	      while(true){
 	    
-		int n = recv(server, buffer, bufsize, 0);
-	    userName += buffer;
+		    int n = recv(server, buffer, bufsize, 0);
+	        userName += buffer;
 	  
-	    if(userName.find("\n") != std::string::npos)
-	      break;
-      }
+	        if(userName.find("\n") != std::string::npos)
+	          break;
+          }
     
-	  /* Wait for password */
-	  send(server, msg.data(), msg.length() + 1, 0);
+	      /* Wait for password */
+	      send(server, msg.data(), msg.length() + 1, 0);
 	  
-	  while(true){
-	    int n = recv(server, buffer, bufsize, 0);
-	    userPassword += buffer;
+	      while(true){
+	        int n = recv(server, buffer, bufsize, 0);
+	        userPassword += buffer;
 	  
-	    if(userPassword.find("\n") != std::string::npos)
-	      break;
-      }
+	        if(userPassword.find("\n") != std::string::npos)
+	          break;
+          }
 
-	  /* validate && remove '\n' */
-      userName = userName.substr(0, userName.length()-1 );
-	  userPassword = userPassword.substr(0, userPassword.length()-1 );
+	      /* validate && remove '\n' */
+          userName = userName.substr(0, userName.length()-1 );
+	      userPassword = userPassword.substr(0, userPassword.length()-1 );
 
-      if(validate(userName, userPassword)){
-	    msg = "Valid";
-	    validUser = true;
-	  }
-	  else{
-	    msg = "Invalid";
-	    validUser = false;
- 	  }
+          if(validate(userName, userPassword)){
+	        msg = "Valid";
+	        validUser = true;
+	      }
+	      else{
+	        msg = "Invalid";
+	        validUser = false;
+ 	      }
     
-	  /* Send if valid user or not */
-      send(server, msg.data(), msg.length() + 1, 0);
-    
+	      /* Send if valid user or not */
+          send(server, msg.data(), msg.length() + 1, 0);
+        
+		  break;
+		}  
 /*****************************************************************************/
 /*********** GET USER LIST WILL GO UNDER CASE 1:******************************/
 /*****************************************************************************/
+        case 1:{
 
-      /* Recieve option "1" */
-      recv(server, buffer, bufsize, 0);
-    
-	  /* Send list */
-      msg = getUserList();
-	  send(server, msg.data(), msg.length() + 1, 0);
-    
+	      /* Send list */
+          msg = getUserList();
+	      send(server, msg.data(), msg.length() + 1, 0);
+          
+		  break;
+		}
 /*****************************************************************************/
 /*********** SEND MESSAGES WILL GO UNDER CASE 2:******************************/
 /*****************************************************************************/
-	
-      string sendUser, sendMessage; 
+	    case 2:{
+          
+		  string sendUser, sendMessage; 
+          send(server, msg.data(), msg.length()+1, 0);
 
-	  /* Recieve option "2" */
-	  recv(server, buffer, bufsize, 0);
-	  msg = buffer;
-	  send(server, msg.data() , msg.length()+1, 0);
+	      /* Recieve user to send message to */
+	      recv(server, buffer, bufsize, 0);
+	      sendUser = buffer;
+          send(server, msg.data(), msg.length()+1, 0);
 
-	  /* Recieve user to send message to */
-	  recv(server, buffer, bufsize, 0);
-	  sendUser = buffer;
-      send(server, msg.data(), msg.length()+1, 0);
-
-	  /* Recieve message to send */
-      recv(server, buffer, bufsize, 0);
-      sendMessage = buffer;
-      send(server, msg.data(), msg.length()+1, 0);
+	      /* Recieve message to send */
+          recv(server, buffer, bufsize, 0);
+          sendMessage = buffer;
+          send(server, msg.data(), msg.length()+1, 0);
     
-	  /* Write message */
-	  sendMessages(sendUser, sendMessage);
+	      /* Write message */
+	      sendMessages(sendUser, sendMessage);
+          
+		  break;
+        }
 /*****************************************************************************/
 /*********** READ MESSAGES WILL GO UNDER CASE 3:******************************/
 /*****************************************************************************/
-    
-	  string readMessage;
-    
-	  /* Receive Option 3 */
-	  recv(server, buffer, bufsize, 0);
-      readMessage = readMessages(userName);
+        case 3:{ 
+	      
+		  string readMessage; 
+          readMessage = readMessages(userName);
 	
-	  /* Send users messages */
-	  send(server, readMessage.data(), readMessage.length()+1, 0); 
+	      /* Send users messages */
+	      send(server, readMessage.data(), readMessage.length()+1, 0); 
+          
+		  break;
+        }
+		case 4:{
+		
+		  break;
+		}
+		case 5:{
+          cout << "\n\n=> Connection terminated with IP " << inet_ntoa(server_addr.sin_addr);
+          close(server);
+          cout << "\nGoodbye..." << endl;
+          close(client);
+          return 0;
+   
+		}
 /*****************************************************************************/
 /*********** READ MESSAGES WILL GO UNDER CASE 3:******************************/
 /*****************************************************************************/
+      }//End of switch
 
-      cout << "\n\n=> Connection terminated with IP " << inet_ntoa(server_addr.sin_addr);
-      close(server);
-      cout << "\nGoodbye..." << endl;
-
-      close(client);
-      return 0;
 	}
-
   return 0;
 }
 
