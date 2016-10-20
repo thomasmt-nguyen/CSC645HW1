@@ -8,6 +8,8 @@ using namespace std;
 
 bool validate(string, string);
 string getUserList();
+string readMessages(string);
+void sendMessage(string, string);
 
 int main(){
 
@@ -21,20 +23,56 @@ int main(){
     cout << "false";
 */
   
-
+/*
   string list = getUserList();
   cout << list;
+  */
+
+  sendMessage("Alice", "this is a line bruh");
   
+  string message = readMessages("Alice");
+  cout << message << endl;
+
   return 0;
 }
 
-void readMessages(string name){
+void sendMessage(string name, string message){
+  
+  ofstream file;
+  file.open(name, ios::app);
+  
+  message += '\n';
+
+  file << message;
+
+  file.close();
+ 
+}
+
+string readMessages(string name){
   
   ifstream file;
   file.open(name);
 
+  string line, message;
 
+  while( getline(file, line) ){
+    
+	line += '\n';
+	message += line;
 
+  }
+  
+  /* Remove last '\n' character */
+  message = message.substr(0, message.length()-1);
+
+  file.close();
+  
+  /* clear all data */
+  ofstream ofs(name);
+  ofs.close();
+
+  return message;
 
 }
 
@@ -50,7 +88,7 @@ string getUserList(){
 	list += userName + '\n';
     
   }
-
+  
   return list;
 
 }

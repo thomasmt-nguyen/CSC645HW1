@@ -80,12 +80,16 @@ int main()
 	/*get authentication*/
 	cout << msg << endl;
     
-	/* send random send*/
-	send(client, msg.data(), bufsize, 0);
+
     
 /*****************************************************************************/
 /*********** GET USER LIST WILL GO UNDER CASE 1:******************************/
 /*****************************************************************************/
+
+	/* send option '1'*/
+	msg = "1";
+	send(client, msg.data(), msg.length() + 1, 0);
+	
 	/* recieve list */
 	recv(client, buffer, bufsize, 0);
 	msg = buffer;
@@ -95,13 +99,24 @@ int main()
 	cout << msg << endl;
     
 /*****************************************************************************/
-/*********** GET USER LIST WILL GO UNDER CASE 1:******************************/
+/*********** SEND MESSAGES WILL GO UNDER CASE 2:******************************/
 /*****************************************************************************/
 
-
+    /* Send Option 1 */
+	msg = "2";
+	send(client, msg.data(), msg.length()+1, 0);
+    
+	/* Recieve confirm option recieved */
+	msg = "Alice";
+	send(client, msg.data(), msg.length()+1, 0);
+	recv(client, buffer, bufsize, 0);
+    
+	msg = "This is a message";
+	send(client, msg.data(), msg.length()+1, 0);
+	recv(client, buffer, bufsize, 0);
 
 /*****************************************************************************/
-/*********** GET USER LIST WILL GO UNDER CASE 1:******************************/
+/*********** READ MESSAGES WILL GO UNDER CASE 3:******************************/
 /*****************************************************************************/
     // Once it reaches here, the client can send a message first.
     cout << "\n=> Connection terminated.\nGoodbye...\n";

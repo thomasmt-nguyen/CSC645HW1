@@ -12,6 +12,8 @@ using namespace std;
 
 bool validate(string, string);
 string getUserList();
+string getMessages(string);
+void sendMessage(string, string);
 
 int main()
 {
@@ -96,13 +98,48 @@ int main()
 	/* Send if valid user or not */
     send(server, msg.data(), msg.length() + 1, 0);
     
-	/* Random */
+/*****************************************************************************/
+/*********** GET USER LIST WILL GO UNDER CASE 1:******************************/
+/*****************************************************************************/
+
+    /* Recieve option "1" */
     recv(server, buffer, bufsize, 0);
     
 	/* Send list */
     msg = getUserList();
-
 	send(server, msg.data(), msg.length() + 1, 0);
+    
+/*****************************************************************************/
+/*********** SEND MESSAGES WILL GO UNDER CASE 2:******************************/
+/*****************************************************************************/
+	
+    string sendUser, sendMessage; 
+
+	/* Recieve option "2" */
+	recv(server, buffer, bufsize, 0);
+	msg = buffer;
+	send(server, msg.data() , msg.length()+1, 0);
+
+	/* Recieve user to send message to */
+	recv(server, buffer, bufsize, 0);
+	sendUser = buffer;
+    send(server, msg.data(), msg.length()+1, 0);
+
+	/* Recieve message to send */
+    recv(server, buffer, bufsize, 0);
+	sendMessage = buffer;
+	send(server, msg.data(), msg.length()+1, 0);
+    
+	cout << msg << endl;
+	cout << sendUser << endl;
+	cout << sendMessage << endl;
+
+
+/*****************************************************************************/
+/*********** READ MESSAGES WILL GO UNDER CASE 3:******************************/
+/*****************************************************************************/
+
+
 
     cout << "\n\n=> Connection terminated with IP " << inet_ntoa(server_addr.sin_addr);
     close(server);
@@ -143,14 +180,61 @@ string getUserList(){
   
   ifstream file;
   file.open("userList");
-  string list, userPassword, userName;
+  string message, list, userPassword, userName;
+  int count;
+
+  count = 0;
 
   while(file >> userName){
-	cout << userName;    
     file >> userPassword;    
-	list += userName + '\n';    
+	list += userName + '\n';
+	count++;
   }
 
-  return list;
+  message = "There are " + to_string(count) + " users.\n";
+  message += list;
+
+  return message;
+
+}
+
+
+void sendMessage(string name, string message){
+  
+  ofstream file;
+  file.open(name, ios::app);
+  
+  message += '\n';
+
+  file << message;
+
+  file.close();
+ 
+}
+
+string readMessages(string name){
+  
+  ifstream file;
+  file.open(name);
+
+  string line, message;
+
+  while( getline(file, line) ){
+    
+	line += '\n';
+	message += line;
+
+  }
+  
+  /* Remove last '\n' character */
+  message = message.substr(0, message.length()-1);
+
+  file.close();
+  
+  /* clear all data */
+  ofstream ofs(name);
+  ofs.close();
+
+  return message;
 
 }
