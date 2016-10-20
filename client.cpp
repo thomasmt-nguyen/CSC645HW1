@@ -56,16 +56,23 @@ int main()
           cout << "Connecting..." << endl;
         
 	/*recieve confirmation*/	
-        recv(client, buffer, bufsize, 0); 
+    recv(client, buffer, bufsize, 0); 
 	cout << buffer << endl;
-
+    
 	//cout << "Welcome!\nPlease Log In." << endl;
 	string name, password, authentication;
       
 	cout << "Username: ";
-        cin >> name;
+    getline(cin,name);
+
+	send(client, name.data(), name.size(), 0);
+    
+	/*
 	cout << "Password: ";
 	cin >> password;
+	strcpy(buffer, password.c_str());
+
+	send(client, buffer, bufsize, 0);
 
 	authentication = name + ":" + password;
 	if(strcmp(buffer, "Valid") != 0){
@@ -74,7 +81,7 @@ int main()
 	}
 
 
-
+*/
 
 
         // Once it reaches here, the client can send a message first.

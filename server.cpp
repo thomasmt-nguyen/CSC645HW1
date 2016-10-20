@@ -13,7 +13,7 @@ int main()
 {
 
     int client, server;
-    int portNum = 6000;
+    int portNum = 5000;
     bool isExit = false;
     int bufsize = 1024;
     char buffer[bufsize];
@@ -49,16 +49,31 @@ int main()
     if (server < 0) 
         cout << "=> Error on accepting..." << endl;
     
-    strcpy(buffer, "Welcome!\nPlease Log In");
-    send(client, buffer, bufsize, 0);
-    //Send valid!
-    //validate
+	/*Send Confirmation*/
+	cout << "Accept Client" << endl;
+	
+    string msg = "Welcome!\nPlease Log In";
+
+    send(server, msg.data(), msg.size(), 0);
+	
+	string userName, userPassword;
+	//Recieve Username
+	recv(server, buffer, bufsize, 0);
+	
+
+    cout << buffer;
+	/*
+	recv(server, buffer, bufsize, 0);
+	userPassword = buffer;
+	//Recieve UserPassword
+    cout << userName << " " << userPassword << endl;
+	//validate
     strcpy(buffer, "Valid");
     send(server, buffer, bufsize, 0);
     
     //Get credentials
     //
-     
+  */   
         cout << "\n\n=> Connection terminated with IP " << inet_ntoa(server_addr.sin_addr);
         close(server);
         cout << "\nGoodbye..." << endl;
@@ -67,6 +82,7 @@ int main()
     return 0;
 }
 
+/*
 int validate(char [] buffer){
   
   string name, password;
@@ -74,12 +90,12 @@ int validate(char [] buffer){
 
   char * pch;
   pch = strtok(buffer, ":");
-  strcpy(pch, name);
+//  strcpy(pch, name);
   
   pch = strtok(buffer, ":");
-  strcpy(pch, password);
+ // strcpy(pch, password);
   
 
+  return 0;
 
-
-}
+}*/
