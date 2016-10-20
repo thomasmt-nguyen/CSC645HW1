@@ -11,6 +11,7 @@
 using namespace std;
 
 bool validate(string, string);
+string getUserList();
 
 int main()
 {
@@ -51,11 +52,11 @@ int main()
     if (server < 0) 
         cout << "=> Error on accepting..." << endl;
     
-	/*Send Confirmation*/
-    msg = "Welcome!\nPlease Log In";
+	/* Send Confirmation */
+    msg = "Welcome!\nPlease Log In.";
     send(server, msg.data(), msg.length() + 1, 0);
 	
-	/*Wait for username*/ 
+	/* Wait for username */ 
 	while(true){
 	  
 	  int n = recv(server, buffer, bufsize, 0);
@@ -66,7 +67,7 @@ int main()
 
     }
     
-	/*Wait for password*/
+	/* Wait for password */
 	send(server, msg.data(), msg.length() + 1, 0);
    
 	while(true){
@@ -79,7 +80,7 @@ int main()
 
     }
 
-	//validate && remove '\n'
+	/* validate && remove '\n' */
     userName = userName.substr(0, userName.length()-1 );
 	userPassword = userPassword.substr(0, userPassword.length()-1 );
 
@@ -91,15 +92,21 @@ int main()
 	  msg = "Invalid";
 	  validUser = false;
 	}
-
+    
+	/* Send if valid user or not */
     send(server, msg.data(), msg.length() + 1, 0);
     
-    //Get credentials
-    //
-  
-        cout << "\n\n=> Connection terminated with IP " << inet_ntoa(server_addr.sin_addr);
-        close(server);
-        cout << "\nGoodbye..." << endl;
+	/* Random */
+    recv(server, buffer, bufsize, 0);
+    
+	/* Send list */
+    msg = getUserList();
+
+	send(server, msg.data(), msg.length() + 1, 0);
+
+    cout << "\n\n=> Connection terminated with IP " << inet_ntoa(server_addr.sin_addr);
+    close(server);
+    cout << "\nGoodbye..." << endl;
 
     close(client);
     return 0;
@@ -115,11 +122,7 @@ bool validate(string name, string password){
   
   while(file >> userName){
     
-
     file >> userPassword;
-  
-	cout << "name: " << name << " - " << userName;
-	cout << "pw: " << password << " - " << userPassword;
 
     if(userName.compare(name) == 0){
     
@@ -133,5 +136,21 @@ bool validate(string name, string password){
   }
 
   return false;
+
+}
+
+string getUserList(){
+  
+  ifstream file;
+  file.open("userList");
+  string list, userPassword, userName;
+
+  while(file >> userName){
+	cout << userName;    
+    file >> userPassword;    
+	list += userName + '\n';    
+  }
+
+  return list;
 
 }

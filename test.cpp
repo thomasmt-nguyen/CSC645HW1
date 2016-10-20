@@ -20,10 +20,21 @@ int main(){
   else
     cout << "false";
 */
-  return 0;
+  
 
   string list = getUserList();
   cout << list;
+  
+  return 0;
+}
+
+void readMessages(string name){
+  
+  ifstream file;
+  file.open(name);
+
+
+
 
 }
 
@@ -31,10 +42,10 @@ string getUserList(){
   
   ifstream file;
   file.open("userList");
-  string list;
+  string list, userPassword, userName;
 
   while(file >> userName){
-    
+	cout << userName;    
     file >> userPassword;    
 	list += userName + '\n';
     

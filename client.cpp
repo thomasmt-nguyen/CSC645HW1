@@ -76,14 +76,33 @@ int main()
     /* Wait for authentication */
 	recv(client, buffer, bufsize, 0);
     msg = buffer;
-    cout << msg;
 
 	/*get authentication*/
-	if(msg.compare("Valid") == 0)
-	  cout << "Success!";
-	else
-	  cout << "Fail!";
+	cout << msg << endl;
+    
+	/* send random send*/
+	send(client, msg.data(), bufsize, 0);
+    
+/*****************************************************************************/
+/*********** GET USER LIST WILL GO UNDER CASE 1:******************************/
+/*****************************************************************************/
+	/* recieve list */
+	recv(client, buffer, bufsize, 0);
+	msg = buffer;
+   
+    
+	/*display list*/
+	cout << msg << endl;
+    
+/*****************************************************************************/
+/*********** GET USER LIST WILL GO UNDER CASE 1:******************************/
+/*****************************************************************************/
 
+
+
+/*****************************************************************************/
+/*********** GET USER LIST WILL GO UNDER CASE 1:******************************/
+/*****************************************************************************/
     // Once it reaches here, the client can send a message first.
     cout << "\n=> Connection terminated.\nGoodbye...\n";
     close(client);

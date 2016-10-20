@@ -9,6 +9,9 @@ client:
 test:
 	g++ -g test.cpp -o test
 
+clean:
+	rm -rf server client test *.dSYM
+
 cleanserver:
 	rm -rf server server.dSYM
 
