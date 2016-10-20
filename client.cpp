@@ -18,10 +18,10 @@ int main()
 
   int client, option, portNum;
   bool isExit = false;
-  int bufsize = 1024;
-  char buffer[bufsize];
+  int msgsize = 1024;
+  char msg[msgsize];
   char * ipPtr = (char*)malloc(100);
-  string ipaddress;
+  string ipaddress, name, password;
 
 
   
@@ -56,17 +56,24 @@ int main()
           cout << "Connecting..." << endl;
         
 	/*recieve confirmation*/	
-    recv(client, buffer, bufsize, 0); 
-	cout << buffer << endl;
-    
-	//cout << "Welcome!\nPlease Log In." << endl;
-	string name, password, authentication;
-    cin.ignore();  
+    /*Will receive "Welcome!\n Please Log in*/
+	recv(client, msg, msgsize, 0); 
+	cout << msg << endl;
+    cin.ignore();
+
 	cout << "Username: ";
     getline(cin,name);
-
-	send(client, name.data(), name.size(), 0);
+	name += '\n';	
+ 	send(client, name.data(), name.length() + 1, 0);
     
+	
+	recv(client, msg, msgsize, 0);
+    //cout << msg << endl;
+    
+	cout << "Password: ";
+    getline(cin,password);
+    password += '\n';
+	send(client, password.data(), password.length() + 1, 0);
 	/*
 	cout << "Password: ";
 	cin >> password;

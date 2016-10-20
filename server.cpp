@@ -1,3 +1,4 @@
+#include <fstream>
 #include <iostream>
 #include <string.h>
 #include <sys/types.h>
@@ -13,11 +14,11 @@ int main()
 {
 
     int client, server;
-    int portNum = 5000;
+    int portNum = 8001;
     bool isExit = false;
-    int bufsize = 1024;
-    char buffer[bufsize];
-
+    int msgsize = 1024;
+    char msg[msgsize];
+	string userName, userPassword;
     struct sockaddr_in server_addr;
     socklen_t size;
 
@@ -45,35 +46,48 @@ int main()
     listen(client, 1);
     server = accept(client,(struct sockaddr *)&server_addr,&size);
 
-    // first check if it is valid or not
     if (server < 0) 
         cout << "=> Error on accepting..." << endl;
     
 	/*Send Confirmation*/
-	cout << "Accept Client" << endl;
+    msg = "Welcome!\nPlease Log In";
+    send(server, msg.data(), msg.length() + 1, 0);
 	
-    string msg = "Welcome!\nPlease Log In";
+	/*Wait for username*/ 
+	while(true){
+	  
+	  int n = recv(server, buffer, bufsize, 0);
+	  userName += buffer;
+	  
+	  if(userName.find("\n") != std::string::npos)
+	    break;
 
-    send(server, msg.data(), msg.size(), 0);
-	
-	string userName, userPassword;
-	//Recieve Username
-	recv(server, buffer, bufsize, 0);
-	
-
-    cout << buffer;
-	/*
-	recv(server, buffer, bufsize, 0);
-	userPassword = buffer;
-	//Recieve UserPassword
-    cout << userName << " " << userPassword << endl;
-	//validate
-    strcpy(buffer, "Valid");
-    send(server, buffer, bufsize, 0);
+    }
     
+	/*Wait for password*/
+	send(server, msg.data(), msg.length() + 1, 0);
+   
+	while(true){
+	  
+	  int n = recv(server, buffer, bufsize, 0);
+	  userPassword += buffer;
+	  
+	  if(userPassword.find("\n") != std::string::npos)
+	    break;
+
+    }
+	
+	/*TODO: Erased this*/
+	cout << "username: " << userName << "\npassword: " << userPassword;
+	
+	//validate
+    /*
+	strcpy(buffer, "Valid");
+    send(server, buffer, bufsize, 0);
+    */
     //Get credentials
     //
-  */   
+  
         cout << "\n\n=> Connection terminated with IP " << inet_ntoa(server_addr.sin_addr);
         close(server);
         cout << "\nGoodbye..." << endl;
@@ -82,20 +96,27 @@ int main()
     return 0;
 }
 
-/*
-int validate(char [] buffer){
-  
-  string name, password;
-  string username, userpassord;
 
-  char * pch;
-  pch = strtok(buffer, ":");
-//  strcpy(pch, name);
+bool validate(string name, string password){
   
-  pch = strtok(buffer, ":");
- // strcpy(pch, password);
+  string userName, userPassword;
   
+  ifstream file ("userList");
+  
+  while(file >> userName){
+    
+	file >> userName;
+    file >> userPassword;
+  
+  if(userName.compare(name) == 0){
+    
+	if(userPassword.compare(password) == 0)
+      return true;
+	else
+	  return false;
+  
+  }
 
-  return 0;
+  return false;
 
-}*/
+}
