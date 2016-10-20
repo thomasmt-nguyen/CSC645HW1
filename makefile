@@ -6,5 +6,16 @@ server:
 client:
 	g++ -g client.cpp -o client
 
-clean:
-	rm -rf server client *.dSYM
+test:
+	g++ -g test.cpp -o test
+
+cleanserver:
+	rm -rf server server.dSYM
+
+cleanclient:
+	rm -rf client client.dSYM
+
+cleantest:
+	rm -rf test test.dSYM
+
+

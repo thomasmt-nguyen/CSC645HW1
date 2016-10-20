@@ -23,8 +23,6 @@ int main()
   char * ipPtr = (char*)malloc(100);
   string ipaddress, msg, name, password;
 
-
-  
   while(true){
 
     displayMenu();

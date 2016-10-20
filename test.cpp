@@ -7,10 +7,11 @@
 using namespace std;
 
 bool validate(string, string);
+string getUserList();
 
 int main(){
 
- 
+/* 
   string name = "Alice";
   string password = "56789";
 
@@ -18,11 +19,32 @@ int main(){
     cout << "true";
   else
     cout << "false";
+*/
+  return 0;
 
-	return 0;
+  string list = getUserList();
+  cout << list;
 
 }
 
+string getUserList(){
+  
+  ifstream file;
+  file.open("userList");
+  string list;
+
+  while(file >> userName){
+    
+    file >> userPassword;    
+	list += userName + '\n';
+    
+  }
+
+  return list;
+
+}
+
+/*test file for validate*/
 bool validate(string name, string password){
   
   string userName, userPassword;

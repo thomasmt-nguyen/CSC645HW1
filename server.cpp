@@ -17,7 +17,7 @@ int main()
 
     int client, server;
     int portNum = 8002;
-    bool isExit = false;
+    bool validUser = false;
     int bufsize = 1024;
     char buffer[bufsize];
 	string userName, userPassword, msg;
@@ -80,13 +80,17 @@ int main()
     }
 
 	//validate && remove '\n'
-    userName = userName.substr(0, userName.length());
-	userPassword = userPassword.substr(0, userPassword.length());
+    userName = userName.substr(0, userName.length()-1 );
+	userPassword = userPassword.substr(0, userPassword.length()-1 );
 
-    if(validate(userName, userPassword))
+    if(validate(userName, userPassword)){
 	  msg = "Valid";
-	else
+	  validUser = true;
+	}
+	else{
 	  msg = "Invalid";
+	  validUser = false;
+	}
 
     send(server, msg.data(), msg.length() + 1, 0);
     
@@ -105,14 +109,18 @@ int main()
 bool validate(string name, string password){
   
   string userName, userPassword;
-  
+    
   ifstream file;
   file.open("userList");
   
   while(file >> userName){
     
+
     file >> userPassword;
   
+	cout << "name: " << name << " - " << userName;
+	cout << "pw: " << password << " - " << userPassword;
+
     if(userName.compare(name) == 0){
     
 	  if(userPassword.compare(password) == 0)
