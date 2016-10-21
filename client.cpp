@@ -168,14 +168,12 @@ int main()
 
 void displayMenu(){
 
-
   std::cout << "0. Connect to the server" << std::endl; 
   std::cout << "1. Get the user list" << std::endl;
   std::cout << "2. Send a message" << std::endl;
   std::cout << "3. Get my messages" << std::endl;
   std::cout << "4. Initiniate a chat with my friend" << std::endl;
   std::cout << "5. Chat with my friend" << std::endl;
-
 
 }
 
