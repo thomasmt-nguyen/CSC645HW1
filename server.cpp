@@ -17,35 +17,36 @@ void sendMessages(string, string);
 
 int main()
 {
-
-  int portNum = 8012;
+  
+  int client;
+  int portNum = 8016;
   bool validUser = false;
   bool online;
   int bufsize = 1024;
   char buffer[bufsize];
   string userName, userPassword, msg;
   struct sockaddr_in server_addr;
-  socklen_t size;
-  
+  socklen_t size; 
+
+  if((client = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+    exit(1);
+    
+  server_addr.sin_family = AF_INET;
+  server_addr.sin_addr.s_addr = htons(INADDR_ANY);
+  server_addr.sin_port = htons(portNum);
+  size = sizeof(server_addr);
+
+  if ((bind(client, (struct sockaddr*)&server_addr,sizeof(server_addr))) < 0) 
+  {
+    cout << "=> Error binding connection, the socket has already been established..." << endl;
+    return -1;
+  }
+
   while(true){
     
-    int client, server;
+    int server;
     online = false;
 
-    if((client = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-      exit(1);
-    
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = htons(INADDR_ANY);
-    server_addr.sin_port = htons(portNum);
-
-    if ((bind(client, (struct sockaddr*)&server_addr,sizeof(server_addr))) < 0) 
-    {
-        cout << "=> Error binding connection, the socket has already been established..." << endl;
-        return -1;
-    }
-
-    size = sizeof(server_addr);
     cout << "=> Looking for clients..." << endl;
 
     listen(client, 1);
@@ -57,32 +58,36 @@ int main()
     /* Send Confirmation */
     msg = "Welcome!\nPlease Log In.";
     send(server, msg.data(), msg.length() + 1, 0);
-
-    /* Wait for username */
-    recv(server, buffer, bufsize, 0);
-    userName = buffer;
+    
+    while(true){
+      
+      /* Wait for username */
+      recv(server, buffer, bufsize, 0);
+      userName = buffer;
  
-    /* Wait for password */
-    send(server, msg.data(), msg.length() + 1, 0);
-    recv(server, buffer, bufsize, 0);
-    userPassword = buffer;
+      /* Wait for password */
+      send(server, msg.data(), msg.length() + 1, 0);
+      recv(server, buffer, bufsize, 0);
+      userPassword = buffer;
 	
-    /* validate */
-    if(validate(userName, userPassword)){
-      cout << "User has logged in" << endl;
-      msg = "Valid";
-      validUser = true;
-      online = true;
-    }
-    else{
-      cout << "user login failed." << endl;
-      msg = "Invalid";
-      validUser = false;
-      exit(0);
+      /* validate */
+      if(validate(userName, userPassword)){
+        cout << "User has logged in" << endl;
+        msg = "Valid";
+        online = true;
+        send(server, msg.data(), msg.length() + 1, 0);
+	break;
+      }
+      else{
+        cout << "user login failed." << endl;
+        msg = "Invalid";
+        send(server, msg.data(), msg.length() + 1, 0);
+      }
+
     }
     
     /* Send if valid user or not */
-    send(server, msg.data(), msg.length() + 1, 0);
+
 
 /*****************************************************************************/
 /*********** LOG ON WILL GO UNDER CASE 0:************************************/
@@ -99,9 +104,7 @@ int main()
 /*****************************************************************************/
 	case 0:{
            
-          /* send You're already connected! */
           /* Wait for username */ 
-
           recv(server, buffer, bufsize, 0);
           userName = buffer;
  
@@ -187,24 +190,27 @@ int main()
 /*****************************************************************************/
 /*********** READ MESSAGES WILL GO UNDER CASE 3:******************************/
 /*****************************************************************************/
-	case 4:{
+	case 4:
+	case 5:{
 	      
           cout << "Client has disconnected." << endl;
 	  online = false;
-          close(server);
-          close(client);
+        
+          //shutdown(server, 2);
+	  shutdown(client, 2);
           break;
  
         }	
+
 /*****************************************************************************/
 /*********** READ MESSAGES WILL GO UNDER CASE 3:******************************/
 /*****************************************************************************/
-	case 5:{
-          
+	case 6:{
+          cout.flush(); 
           cout << "Shutting down server." << endl;
-          close(server);
-          close(client);
-          return 0;
+          shutdown(server, 2);
+          shutdown(client, 2);
+          return 1;
    
 	}
 

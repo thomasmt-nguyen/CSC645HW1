@@ -13,6 +13,8 @@
 using namespace std;
 
 void displayMenu();
+void initializeChat(string);
+void chat(string);
 
 int main()
 {
@@ -22,10 +24,10 @@ int main()
   int bufsize = 1024;
   char buffer[bufsize];
   char * ipPtr = (char*)malloc(100);
-  string ipaddress, msg, option;
-
+  string ipaddress, user, msg, option;
+  
   while(true){
-
+    connected = false;
     displayMenu();
     cout << "Your option<enter a number>: ";
     getline(cin, option);
@@ -33,53 +35,66 @@ int main()
     switch( atoi(option.c_str()) ){
 
       case 0:{
-    
-        cout << "Please enter the IP Address: ";
-        cin >> ipaddress; 
-        cout << "Please enter the port number: ";
-        cin >> portNum;
-        strcpy(ipPtr, ipaddress.c_str());
         
-	/*connect to server*/
-        struct sockaddr_in server_addr; 
-        client = socket(AF_INET, SOCK_STREAM, 0);
+	/* Connect to Server */
+        if(!connected){	
+        
+	  cout << "Please enter the IP Address: ";
+          getline(cin, ipaddress);
+          cout << "Please enter the port number: ";
+          cin >> portNum;
+          strcpy(ipPtr, ipaddress.c_str());
+        
+	  /*connect to server*/
+          struct sockaddr_in server_addr; 
+          client = socket(AF_INET, SOCK_STREAM, 0);
         	
-        if (client < 0)
-          exit(1);
+          if (client < 0)
+            exit(1);
         
-        server_addr.sin_family = AF_INET;
-        server_addr.sin_port = htons(portNum);
+          server_addr.sin_family = AF_INET;
+          server_addr.sin_port = htons(portNum);
+          server_addr.sin_addr.s_addr = inet_addr(ipPtr);
 
-        /*connect socket*/
-        if((connect(client,(struct sockaddr *)&server_addr, sizeof(server_addr)) == 0))
-          cout << "Connecting..." << endl;
+          /*connect socket*/
+          if((connect(client,(struct sockaddr *)&server_addr, sizeof(server_addr)) == 0))
+            cout << "Connecting..." << endl;
         
-        /* Wait for connection confirmation */	
-        recv(client, buffer, bufsize, 0); 
-        cout << buffer << endl;
-        cin.ignore();
+          /* Wait for connection confirmation */	
+          recv(client, buffer, bufsize, 0); 
+          cout << buffer << endl;
+          cin.ignore();
+        }
+	
+	/* Get Login */
+	while(true){
+          
+	  /* Send Username */
+	  cout << "Username: ";
+          getline(cin,msg);
+          user = msg;
+	  send(client, msg.data(), msg.length() + 1, 0);
+	  recv(client, buffer, bufsize, 0);
     
-        /* Send Username */
-	cout << "Username: ";
-        getline(cin,msg);
-	send(client, msg.data(), msg.length() + 1, 0);
-	recv(client, buffer, bufsize, 0);
+	  /* Send Password */
+          cout << "Password: ";
+          getline(cin,msg);
+	  send(client, msg.data(), msg.length() + 1, 0);
     
-	/* Send Password */
-        cout << "Password: ";
-        getline(cin,msg);
-	send(client, msg.data(), msg.length() + 1, 0);
-    
-        /* Wait for authentication */
-	recv(client, buffer, bufsize, 0);
-	msg = buffer;
+          /* Wait for authentication */
+	  recv(client, buffer, bufsize, 0);
+	  msg = buffer;
 
-        /*get authentication*/
-	if(msg.compare("Valid") == 0)
-	  cout << "login success" << endl;
-	else
-	  cout << "login failure" << endl;
-         
+          /*get authentication*/
+	  if(msg.compare("Valid") == 0)
+	    break;
+	  else
+	    cout << "login failure" << endl;
+        
+	} 
+        
+	connected = true;
+	cout << "login success" << endl;
 	break;
       }   
 /*****************************************************************************/
@@ -143,26 +158,32 @@ int main()
 /*********** CASE 4: Initiate a chat *****************************************/
 /*****************************************************************************/
       case 4:{
-        
+        connected = false; 
 	send(client, option.data(), option.length()+1, 0);
-        close(client);
-                
+        shutdown(client, 2);
+	initializeChat(user); 
         break;
       }
 /*****************************************************************************/
 /*********** READ MESSAGES WILL GO UNDER CASE 3:******************************/
 /*****************************************************************************/
       case 5:{
-	    
-	close(client);
-	return 0; 
+        connected = false;
+        send(client, option.data(), option.length()+1, 0);
+	shutdown(client, 2);
+	chat(user);
+        break;	
+      }
+      case 6:{
+        close(client);
+	return 0;
       }
 
     }//end switch
   
   }//end while loop
 
-  close(client);
+  shutdown(client, 2);
   return 0;
 }
 
@@ -209,21 +230,22 @@ std::string getIpAddress(){
 
 }
 
-void initializeChat(){
+void initializeChat(string user){
 
   int portNum, client, server;
   int bufsize = 1024;
   char buffer[bufsize];
-  string msg;
+  string msg, input;
   struct sockaddr_in server_addr;
   socklen_t size;
   
   /* Get port info */
   cout << "Please enter the port number you want to listen on: ";
-  getline(cin, portnum);
+  getline(cin, input);
+  portNum = atoi(input.c_str());
 
   if((client = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-	  exit(1);
+    exit(1);
    
   server_addr.sin_family = AF_INET;
   server_addr.sin_addr.s_addr = htons(INADDR_ANY);
@@ -233,19 +255,119 @@ void initializeChat(){
   if ((bind(client, (struct sockaddr*)&server_addr,sizeof(server_addr))) < 0) 
   {
     cout << "=> Error binding connection, the socket has already been established..." << endl;
-    return -1;
+    exit(1);
   }
 
   /* Listen */
-  cout << "I am listening on 127.0.0.1:" << portNum; << endl;
-  cout << "server_addr: " << server_addr << endl;
+  cout << "I am listening on 127.0.0.1:" << portNum << endl;
   listen(client, 1);
   server = accept(client,(struct sockaddr *)&server_addr,&size);
     
   /* Send Confirmation */
   msg = "Connected!";
   send(server, msg.data(), msg.length() + 1, 0);
+  cout << "Connected. " << endl;
+
+  string outmsg;
+  user += ": ";
+  char * check = NULL;
+  while(true){
+    
+    /* recieve  message */
+    recv(server, buffer, bufsize, 0);
+    cout << buffer << endl;
+
+    /* Check for Bye */
+    check = strstr(buffer, "Bye");
+    if(check)
+      break;
+
+    /* send message */
+    outmsg = user; 
+    cout << user;
+    getline(cin, msg);
+    outmsg += msg;
+    send(server, outmsg.data(), outmsg.length()+1, 0);
+    
+    /* Check for bye */
+    check = strstr(outmsg.c_str(), "Bye");
+    if(check)
+      break;
+
+  }
   
+  shutdown(server, 2);
+  shutdown(client, 2);
   close(server);
   close(client);
+}
+
+void chat(string user){
+
+  int client, portNum;
+  int bufsize = 1024;
+  char buffer[bufsize];
+  char * ipPtr = (char*)malloc(100);
+  char * check = NULL;
+  string ipaddress, msg, outmsg;
+  
+  /* Get info */
+  cout << "Please enter your friend's IP Address: ";
+  getline(cin, ipaddress); 
+  cout << "Please enter your friend's port number: ";
+  cin >> portNum;
+  strcpy(ipPtr, ipaddress.c_str());
+  
+  cin.ignore();
+
+  /*connect to server*/
+  struct sockaddr_in server_addr; 
+  client = socket(AF_INET, SOCK_STREAM, 0);
+        	
+  if (client < 0)
+    exit(1);
+        
+  server_addr.sin_family = AF_INET;
+  server_addr.sin_port = htons(portNum);
+  server_addr.sin_addr.s_addr = inet_addr(ipPtr);
+  /*connect socket*/
+  
+  if((connect(client,(struct sockaddr *)&server_addr, sizeof(server_addr)) == 0))
+    cout << "Connecting..." << endl;
+        
+  /* Wait for connection confirmation */	
+  recv(client, buffer, bufsize, 0); 
+  cout << buffer << endl;
+  
+  /* Send first message */
+  cout << "<Type \"Bye\" to stop the conversation>" << endl; 
+  user += ": ";
+  
+  while(true){
+    
+    /* send message */
+    outmsg = user;
+    cout << user;
+    getline(cin, msg);
+    outmsg += msg;   
+    send(client, outmsg.data(), outmsg.length()+1, 0);
+    
+    /*check for Bye*/
+    check = strstr(outmsg.c_str(), "Bye");
+    if(check)
+      break;
+
+    /*recieve message */
+    recv(client, buffer, bufsize, 0);
+    cout << buffer << endl;
+
+    /*check for Bye*/
+    check = strstr(buffer, "Bye");
+    if(check)
+      break;
+  
+  }
+
+  shutdown(client, 2);
+  
 }
