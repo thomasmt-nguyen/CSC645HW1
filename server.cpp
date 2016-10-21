@@ -18,22 +18,27 @@ void sendMessages(string, string);
 int main()
 {
 
+  int portNum = 8012;
+  bool validUser = false;
+  bool online;
+  int bufsize = 1024;
+  char buffer[bufsize];
+  string userName, userPassword, msg;
+  struct sockaddr_in server_addr;
+  socklen_t size;
+  
+  while(true){
+    
     int client, server;
-    int portNum = 8005;
-    bool validUser = false;
-    int bufsize = 1024;
-    char buffer[bufsize];
-	string userName, userPassword, msg;
-    struct sockaddr_in server_addr;
-    socklen_t size;
+    online = false;
 
-    client = socket(AF_INET, SOCK_STREAM, 0);
-
+    if((client = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+	  exit(1);
+    
+	/*
     if (client < 0) 
-    {
-        cout << "\nError establishing socket..." << endl;
         exit(1);
-    }
+    */
 
     server_addr.sin_family = AF_INET;
     server_addr.sin_addr.s_addr = htons(INADDR_ANY);
@@ -51,61 +56,55 @@ int main()
     listen(client, 1);
     server = accept(client,(struct sockaddr *)&server_addr,&size);
 
-    if (server < 0) 
-        cout << "=> Error on accepting..." << endl;
+    if (server > 0) 
+      cout << "Client has connected." << endl;
     
 	/* Send Confirmation */
     msg = "Welcome!\nPlease Log In.";
     send(server, msg.data(), msg.length() + 1, 0);
 
-	/* Wait for username */ 
-	while(true){
-	    
-      int n = recv(server, buffer, bufsize, 0);
-	  userName += buffer;
-	  
-	  if(userName.find("\n") != std::string::npos)
-	    break;
-    }
-    
+	/* Wait for username */
+	recv(server, buffer, bufsize, 0);
+	userName = buffer;
+
 	/* Wait for password */
 	send(server, msg.data(), msg.length() + 1, 0);
-	  
-	while(true){
-	  int n = recv(server, buffer, bufsize, 0);
-	  userPassword += buffer;
-	  
-	  if(userPassword.find("\n") != std::string::npos)
-	    break;
-    }
-
-	/* validate && remove '\n' */
-    userName = userName.substr(0, userName.length()-1 );
-	userPassword = userPassword.substr(0, userPassword.length()-1 );
-
+	recv(server, buffer, bufsize, 0);
+	userPassword = buffer;
+	
+	/* validate */
     if(validate(userName, userPassword)){
+	  cout << "User has logged in" << endl;
 	  msg = "Valid";
 	  validUser = true;
+	  online = true;
 	}
 	else{
+	  cout << "user login failed." << endl;
 	  msg = "Invalid";
 	  validUser = false;
+	  exit(0);
  	}
     
 	/* Send if valid user or not */
     send(server, msg.data(), msg.length() + 1, 0);
+
 /*****************************************************************************/
-/*********** GET USER LIST WILL GO UNDER CASE 1:******************************/
+/*********** LOG ON WILL GO UNDER CASE 0:************************************/
 /*****************************************************************************/
 	
-    while(true){
+    while(online){
       
 	  /* get option */
       recv(server, buffer, bufsize, 0);	  
 	  switch( atoi(buffer) ){
         
+/*****************************************************************************/
+/*********** CASE 0: LOGGING ON **********************************************/
+/*****************************************************************************/
 		case 0:{
-	      
+           
+          /* send You're already connected! */
 		  /* Wait for username */ 
 	      while(true){
 	    
@@ -132,18 +131,22 @@ int main()
 	      userPassword = userPassword.substr(0, userPassword.length()-1 );
 
           if(validate(userName, userPassword)){
-	        msg = "Valid";
+			cout << "User has logged on" << endl;
 	        validUser = true;
+			online = true;
+			msg = "Valid";
 	      }
 	      else{
-	        msg = "Invalid";
+            cout << "User login failed." << endl;
 	        validUser = false;
+	        msg = "Invalid";
  	      }
     
 	      /* Send if valid user or not */
           send(server, msg.data(), msg.length() + 1, 0);
         
 		  break;
+		
 		}  
 /*****************************************************************************/
 /*********** GET USER LIST WILL GO UNDER CASE 1:******************************/
@@ -153,8 +156,9 @@ int main()
 	      /* Send list */
           msg = getUserList();
 	      send(server, msg.data(), msg.length() + 1, 0);
-          
+          cout << "Userlist has been sent." << endl; 
 		  break;
+		
 		}
 /*****************************************************************************/
 /*********** SEND MESSAGES WILL GO UNDER CASE 2:******************************/
@@ -177,40 +181,62 @@ int main()
 	      /* Write message */
 	      sendMessages(sendUser, sendMessage);
           
+		  /* Log onto consol */
+		  cout << userName << " has sent a message to " << sendUser << endl;
+		  
 		  break;
+
         }
 /*****************************************************************************/
 /*********** READ MESSAGES WILL GO UNDER CASE 3:******************************/
 /*****************************************************************************/
         case 3:{ 
 	      
-		  string readMessage; 
+		  string readMessage;
+
           readMessage = readMessages(userName);
 	
 	      /* Send users messages */
 	      send(server, readMessage.data(), readMessage.length()+1, 0); 
           
+		  cout << userName << " has received their messages." << endl;
+		  
 		  break;
-        }
-		case 4:{
-		
-		  break;
+        
 		}
+
+/*****************************************************************************/
+/*********** READ MESSAGES WILL GO UNDER CASE 3:******************************/
+/*****************************************************************************/
+		case 4:{
+	      
+          cout << "Client has disconnected." << endl;
+		  online = false;
+		  close(server);
+          close(client);
+		  break;
+
+		}	
+/*****************************************************************************/
+/*********** READ MESSAGES WILL GO UNDER CASE 3:******************************/
+/*****************************************************************************/
 		case 5:{
-          cout << "\n\n=> Connection terminated with IP " << inet_ntoa(server_addr.sin_addr);
-          close(server);
-          cout << "\nGoodbye..." << endl;
+          
+          cout << "Shutting down server." << endl;
+		  close(server);
           close(client);
           return 0;
    
 		}
-/*****************************************************************************/
-/*********** READ MESSAGES WILL GO UNDER CASE 3:******************************/
-/*****************************************************************************/
-      }//End of switch
 
-	}
+      }//End of switch
+    
+	}//End of while loop
+  
+  }//End of while loop
+
   return 0;
+
 }
 
 

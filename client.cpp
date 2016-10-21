@@ -18,7 +18,7 @@ int main()
 {
 
   int client, portNum;
-  bool isExit = false;
+  bool connected;
   int bufsize = 1024;
   char buffer[bufsize];
   char * ipPtr = (char*)malloc(100);
@@ -61,8 +61,7 @@ int main()
     
 	    /* Send Username */
 	    cout << "Username: ";
-        getline(cin,msg);
-	    msg += '\n';	
+        getline(cin,msg);	
  	    send(client, msg.data(), msg.length() + 1, 0);
    
 	    recv(client, buffer, bufsize, 0);
@@ -71,7 +70,6 @@ int main()
 	    /* Send Password */
 	    cout << "Password: ";
         getline(cin,msg);
-        msg += '\n';
 	    send(client, msg.data(), msg.length() + 1, 0);
     
          /* Wait for authentication */
@@ -144,16 +142,22 @@ int main()
 
        }
 /*****************************************************************************/
-/*********** READ MESSAGES WILL GO UNDER CASE 3:******************************/
+/*********** CASE 4: Initiate a chat *****************************************/
 /*****************************************************************************/
       case 4:{
-
+        
+		send(client, option.data(), option.length()+1, 0);
+        close(client);
+                
         break;
 	  }
-	  case 5:{
+/*****************************************************************************/
+/*********** READ MESSAGES WILL GO UNDER CASE 3:******************************/
+/*****************************************************************************/
+      case 5:{
 	    
 		close(client);
-		return 
+		return 0; 
 		break;
       
 	  }
@@ -210,4 +214,43 @@ std::string getIpAddress(){
 
 }
 
+void initializeChat(){
 
+  int portNum, client, server;
+  int bufsize = 1024;
+  char buffer[bufsize];
+  string msg;
+  struct sockaddr_in server_addr;
+  socklen_t size;
+  
+  /* get port info */
+  cout << "Please enter the port number you want to listen on: ";
+  getline(cin, portnum);
+
+  if((client = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+	  exit(1);
+   
+  server_addr.sin_family = AF_INET;
+  server_addr.sin_addr.s_addr = htons(INADDR_ANY);
+  server_addr.sin_port = htons(portNum);
+
+  if ((bind(client, (struct sockaddr*)&server_addr,sizeof(server_addr))) < 0) 
+  {
+    cout << "=> Error binding connection, the socket has already been established..." << endl;
+    return -1;
+  }
+
+  size = sizeof(server_addr);
+  cout << "I am connected on 127.0.0.1 " << server_addr << endl;
+
+  listen(client, 1);
+  server = accept(client,(struct sockaddr *)&server_addr,&size);
+
+  if (server > 0) 
+    cout << "Client has connected." << endl;
+    
+  /* Send Confirmation */
+  msg = "Connected!";
+  send(server, msg.data(), msg.length() + 1, 0);
+  
+}
