@@ -50,11 +50,11 @@ int main()
         server_addr.sin_family = AF_INET;
         server_addr.sin_port = htons(portNum);
 
-	    /*connect socket*/
+        /*connect socket*/
         if((connect(client,(struct sockaddr *)&server_addr, sizeof(server_addr)) == 0))
           cout << "Connecting..." << endl;
         
-	    /* Wait for connection confirmation */	
+		/* Wait for connection confirmation */	
         recv(client, buffer, bufsize, 0); 
 		cout << buffer << endl;
         cin.ignore();
