@@ -33,13 +33,8 @@ int main()
     online = false;
 
     if((client = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-	  exit(1);
+      exit(1);
     
-	/*
-    if (client < 0) 
-        exit(1);
-    */
-
     server_addr.sin_family = AF_INET;
     server_addr.sin_addr.s_addr = htons(INADDR_ANY);
     server_addr.sin_port = htons(portNum);
@@ -59,34 +54,34 @@ int main()
     if (server > 0) 
       cout << "Client has connected." << endl;
     
-	/* Send Confirmation */
+    /* Send Confirmation */
     msg = "Welcome!\nPlease Log In.";
     send(server, msg.data(), msg.length() + 1, 0);
 
-	/* Wait for username */
-	recv(server, buffer, bufsize, 0);
-	userName = buffer;
-
-	/* Wait for password */
-	send(server, msg.data(), msg.length() + 1, 0);
-	recv(server, buffer, bufsize, 0);
-	userPassword = buffer;
+    /* Wait for username */
+    recv(server, buffer, bufsize, 0);
+    userName = buffer;
+ 
+    /* Wait for password */
+    send(server, msg.data(), msg.length() + 1, 0);
+    recv(server, buffer, bufsize, 0);
+    userPassword = buffer;
 	
-	/* validate */
+    /* validate */
     if(validate(userName, userPassword)){
-	  cout << "User has logged in" << endl;
-	  msg = "Valid";
-	  validUser = true;
-	  online = true;
-	}
-	else{
-	  cout << "user login failed." << endl;
-	  msg = "Invalid";
-	  validUser = false;
-	  exit(0);
- 	}
+      cout << "User has logged in" << endl;
+      msg = "Valid";
+      validUser = true;
+      online = true;
+    }
+    else{
+      cout << "user login failed." << endl;
+      msg = "Invalid";
+      validUser = false;
+      exit(0);
+    }
     
-	/* Send if valid user or not */
+    /* Send if valid user or not */
     send(server, msg.data(), msg.length() + 1, 0);
 
 /*****************************************************************************/
@@ -95,96 +90,83 @@ int main()
 	
     while(online){
       
-	  /* get option */
+      /* get option */
       recv(server, buffer, bufsize, 0);	  
-	  switch( atoi(buffer) ){
+      switch( atoi(buffer) ){
         
 /*****************************************************************************/
 /*********** CASE 0: LOGGING ON **********************************************/
 /*****************************************************************************/
-		case 0:{
+	case 0:{
            
           /* send You're already connected! */
-		  /* Wait for username */ 
-	      while(true){
-	    
-		    int n = recv(server, buffer, bufsize, 0);
-	        userName += buffer;
-	  
-	        if(userName.find("\n") != std::string::npos)
-	          break;
-          }
-    
-	      /* Wait for password */
-	      send(server, msg.data(), msg.length() + 1, 0);
-	  
-	      while(true){
-	        int n = recv(server, buffer, bufsize, 0);
-	        userPassword += buffer;
-	  
-	        if(userPassword.find("\n") != std::string::npos)
-	          break;
-          }
+          /* Wait for username */ 
 
-	      /* validate && remove '\n' */
-          userName = userName.substr(0, userName.length()-1 );
-	      userPassword = userPassword.substr(0, userPassword.length()-1 );
-
-          if(validate(userName, userPassword)){
-			cout << "User has logged on" << endl;
-	        validUser = true;
-			online = true;
-			msg = "Valid";
-	      }
-	      else{
-            cout << "User login failed." << endl;
-	        validUser = false;
-	        msg = "Invalid";
- 	      }
-    
-	      /* Send if valid user or not */
+          recv(server, buffer, bufsize, 0);
+          userName = buffer;
+ 
+          /* Wait for password */
           send(server, msg.data(), msg.length() + 1, 0);
-        
-		  break;
+          recv(server, buffer, bufsize, 0);
+          userPassword = buffer;
+	
+          /* validate */
+          if(validate(userName, userPassword)){
+            cout << "User has logged in" << endl;
+            msg = "Valid";
+            validUser = true;
+            online = true;
+          }
+          else{
+            cout << "user login failed." << endl;
+            msg = "Invalid";
+            validUser = false;
+            exit(0);
+          }
+    
+          /* Send if valid user or not */
+          send(server, msg.data(), msg.length() + 1, 0);
+	
+	break;
 		
-		}  
+	}  
 /*****************************************************************************/
 /*********** GET USER LIST WILL GO UNDER CASE 1:******************************/
 /*****************************************************************************/
         case 1:{
 
-	      /* Send list */
+	  /* Send list */
           msg = getUserList();
-	      send(server, msg.data(), msg.length() + 1, 0);
+	  send(server, msg.data(), msg.length() + 1, 0);
           cout << "Userlist has been sent." << endl; 
-		  break;
+          break;
 		
-		}
+	}
 /*****************************************************************************/
 /*********** SEND MESSAGES WILL GO UNDER CASE 2:******************************/
 /*****************************************************************************/
-	    case 2:{
+	case 2:{
           
-		  string sendUser, sendMessage; 
+          string sendUser, sendMessage; 
           send(server, msg.data(), msg.length()+1, 0);
 
-	      /* Recieve user to send message to */
-	      recv(server, buffer, bufsize, 0);
-	      sendUser = buffer;
+	  /* Recieve user to send message to */
+	  recv(server, buffer, bufsize, 0);
+	  sendUser = buffer;
           send(server, msg.data(), msg.length()+1, 0);
 
-	      /* Recieve message to send */
+	  /* Recieve message to send */
           recv(server, buffer, bufsize, 0);
           sendMessage = buffer;
           send(server, msg.data(), msg.length()+1, 0);
     
-	      /* Write message */
-	      sendMessages(sendUser, sendMessage);
+	  /* Write message */
+	  sendMessages(sendUser, sendMessage);
           
-		  /* Log onto consol */
-		  cout << userName << " has sent a message to " << sendUser << endl;
+          /* Log onto consol */
+          cout << userName << " has sent a message to " << sendUser << endl;
 		  
-		  break;
+          break;
 
         }
 /*****************************************************************************/
@@ -192,46 +174,43 @@ int main()
 /*****************************************************************************/
         case 3:{ 
 	      
-		  string readMessage;
-
+          string readMessage;
           readMessage = readMessages(userName);
 	
-	      /* Send users messages */
-	      send(server, readMessage.data(), readMessage.length()+1, 0); 
-          
-		  cout << userName << " has received their messages." << endl;
+	  /* Send users messages */
+	  send(server, readMessage.data(), readMessage.length()+1, 0); 
+          cout << userName << " has received their messages." << endl;
 		  
-		  break;
+          break;
         
-		}
-
+	}
 /*****************************************************************************/
 /*********** READ MESSAGES WILL GO UNDER CASE 3:******************************/
 /*****************************************************************************/
-		case 4:{
+	case 4:{
 	      
           cout << "Client has disconnected." << endl;
-		  online = false;
-		  close(server);
+	  online = false;
+          close(server);
           close(client);
-		  break;
-
-		}	
+          break;
+ 
+        }	
 /*****************************************************************************/
 /*********** READ MESSAGES WILL GO UNDER CASE 3:******************************/
 /*****************************************************************************/
-		case 5:{
+	case 5:{
           
           cout << "Shutting down server." << endl;
-		  close(server);
+          close(server);
           close(client);
           return 0;
    
-		}
+	}
 
       }//End of switch
     
-	}//End of while loop
+    }//End of while loop
   
   }//End of while loop
 
@@ -253,10 +232,10 @@ bool validate(string name, string password){
 
     if(userName.compare(name) == 0){
     
-	  if(userPassword.compare(password) == 0)
+      if(userPassword.compare(password) == 0)
         return true;
-	  else
-	    return false;
+      else
+	return false;
   
     }
   
@@ -311,8 +290,8 @@ string readMessages(string name){
 
   while( getline(file, line) ){
     
-	line += '\n';
-	message += line;
+    line += '\n';
+    message += line;
 
   }
   

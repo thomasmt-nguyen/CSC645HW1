@@ -63,9 +63,7 @@ int main()
 	cout << "Username: ";
         getline(cin,msg);
 	send(client, msg.data(), msg.length() + 1, 0);
-        
 	recv(client, buffer, bufsize, 0);
-	//cout << msg << endl;
     
 	/* Send Password */
         cout << "Password: ";
