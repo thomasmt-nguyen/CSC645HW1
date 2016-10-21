@@ -55,34 +55,34 @@ int main()
           cout << "Connecting..." << endl;
         
 	    /* Wait for connection confirmation */	
-	    recv(client, buffer, bufsize, 0); 
-	    cout << buffer << endl;
+        recv(client, buffer, bufsize, 0); 
+		cout << buffer << endl;
         cin.ignore();
     
-	    /* Send Username */
-	    cout << "Username: ";
-        getline(cin,msg);	
- 	    send(client, msg.data(), msg.length() + 1, 0);
-   
-	    recv(client, buffer, bufsize, 0);
-        //cout << msg << endl;
+        /* Send Username */
+		cout << "Username: ";
+        getline(cin,msg);
+		send(client, msg.data(), msg.length() + 1, 0);
+        
+		recv(client, buffer, bufsize, 0);
+		//cout << msg << endl;
     
 	    /* Send Password */
-	    cout << "Password: ";
+        cout << "Password: ";
         getline(cin,msg);
-	    send(client, msg.data(), msg.length() + 1, 0);
+		send(client, msg.data(), msg.length() + 1, 0);
     
-         /* Wait for authentication */
-	     recv(client, buffer, bufsize, 0);
-         msg = buffer;
+        /* Wait for authentication */
+		recv(client, buffer, bufsize, 0);
+		msg = buffer;
 
-	     /*get authentication*/
-	     if(msg.compare("Valid") == 0)
-		   cout << "login success" << endl;
-		 else
-		   cout << "login failure" << endl;
-       
-         break;
+        /*get authentication*/
+		if(msg.compare("Valid") == 0)
+		  cout << "login success" << endl;
+		else
+		  cout << "login failure" << endl;
+         
+		 break;
        }   
 /*****************************************************************************/
 /*********** GET USER LIST WILL GO UNDER CASE 1:******************************/
@@ -223,7 +223,7 @@ void initializeChat(){
   struct sockaddr_in server_addr;
   socklen_t size;
   
-  /* get port info */
+  /* Get port info */
   cout << "Please enter the port number you want to listen on: ";
   getline(cin, portnum);
 
@@ -233,6 +233,7 @@ void initializeChat(){
   server_addr.sin_family = AF_INET;
   server_addr.sin_addr.s_addr = htons(INADDR_ANY);
   server_addr.sin_port = htons(portNum);
+  size = sizeof(server_addr);
 
   if ((bind(client, (struct sockaddr*)&server_addr,sizeof(server_addr))) < 0) 
   {
@@ -240,17 +241,16 @@ void initializeChat(){
     return -1;
   }
 
-  size = sizeof(server_addr);
-  cout << "I am connected on 127.0.0.1 " << server_addr << endl;
-
+  /* Listen */
+  cout << "I am listening on 127.0.0.1:" << portNum; << endl;
+  cout << "server_addr: " << server_addr << endl;
   listen(client, 1);
   server = accept(client,(struct sockaddr *)&server_addr,&size);
-
-  if (server > 0) 
-    cout << "Client has connected." << endl;
     
   /* Send Confirmation */
   msg = "Connected!";
   send(server, msg.data(), msg.length() + 1, 0);
   
+  close(server);
+  close(client);
 }
